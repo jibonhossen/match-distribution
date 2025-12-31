@@ -71,6 +71,28 @@ app.get('/api/history', async (req, res) => {
     }
 });
 
+// GET /api/history/user/:uid - Fetch history for specific user
+app.get('/api/history/user/:uid', async (req, res) => {
+    try {
+        const { uid } = req.params;
+        const { limit = 20 } = req.query;
+
+        // Use JSON containment operator to find rows where winners array contains an object with this uid
+        const { data, error } = await supabase
+            .from('match_history')
+            .select('*')
+            .contains('winners', JSON.stringify([{ uid }])) // Query JSONB column
+            .order('completed_at', { ascending: false })
+            .limit(Number(limit));
+
+        if (error) throw error;
+        res.json(data);
+    } catch (error: any) {
+        console.error('Error fetching user history:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // POST /api/history - Log a completed match (Called by Admin App after distribution)
 app.post('/api/history', async (req, res) => {
     try {
