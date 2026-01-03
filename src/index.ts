@@ -52,6 +52,51 @@ app.post('/api/rules', async (req, res) => {
     }
 });
 
+// PUT /api/rules/:id - Update an existing rule
+app.put('/api/rules/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        // Remove id and created_at from updates if present
+        delete updates.id;
+        delete updates.created_at;
+
+        if (!updates.name || !updates.type || !updates.config) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const { data, error } = await supabase
+            .from('prize_rules')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json(data);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// DELETE /api/rules/:id - Delete a rule
+app.delete('/api/rules/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const { error } = await supabase
+            .from('prize_rules')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        res.json({ success: true, message: 'Rule deleted successfully' });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ================== MATCH HISTORY ==================
 
 // GET /api/history - Fetch recent match history (for Main App)
