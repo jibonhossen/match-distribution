@@ -1,19 +1,12 @@
 // Prize Configuration Types
 
-export type PrizeRuleType = 'equal_share' | 'rank_kill' | 'fixed_list';
+export type PrizeRuleType = 'rank_kill';
 
 export interface BasePrizeRule {
     id: string; // UUID from Supabase
     name: string;
     type: PrizeRuleType;
     created_at?: string;
-}
-
-export interface EqualShareRule extends BasePrizeRule {
-    type: 'equal_share';
-    config: {
-        total_prize: number;
-    };
 }
 
 export interface RankKillRule extends BasePrizeRule {
@@ -24,14 +17,7 @@ export interface RankKillRule extends BasePrizeRule {
     };
 }
 
-export interface FixedListRule extends BasePrizeRule {
-    type: 'fixed_list';
-    config: {
-        prizes: number[]; // Index 0 = Rank 1, Index 1 = Rank 2, etc.
-    };
-}
-
-export type PrizeRule = EqualShareRule | RankKillRule | FixedListRule;
+export type PrizeRule = RankKillRule;
 
 
 // Match Result & History Types
@@ -49,6 +35,22 @@ export interface Winner {
     amount: number;
     breakdown: string; // "Rank 1 (500) + 5 Kills (50)"
     position?: number;
+}
+
+// Match Template Types
+export interface MatchTemplate {
+    id: string;
+    name: string;
+    created_at?: string;
+    title: string;
+    match_type: 'Solo' | 'Duo' | 'Squad';
+    category: string;
+    map: string;
+    entry_fee: number;
+    prize_pool: number;
+    per_kill: number;
+    total_slots: number;
+    prize_details: string;
 }
 
 export interface MatchHistoryLog {

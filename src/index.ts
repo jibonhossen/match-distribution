@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { supabase } from './db';
-import { PrizeRule, MatchHistoryLog } from './types';
+import { PrizeRule, MatchHistoryLog, MatchTemplate } from './types';
 
 dotenv.config();
 
@@ -92,6 +92,87 @@ app.delete('/api/rules/:id', async (req, res) => {
 
         if (error) throw error;
         res.json({ success: true, message: 'Rule deleted successfully' });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ================== MATCH TEMPLATES ==================
+
+// GET /api/templates - Fetch all templates
+app.get('/api/templates', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('match_templates')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json(data);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/templates - Create a new template
+app.post('/api/templates', async (req, res) => {
+    try {
+        const template: Omit<MatchTemplate, 'id' | 'created_at'> = req.body;
+
+        // Basic validation
+        if (!template.name || !template.title || !template.match_type) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const { data, error } = await supabase
+            .from('match_templates')
+            .insert([template])
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.status(201).json(data);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// PUT /api/templates/:id - Update an existing template
+app.put('/api/templates/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        // Remove id and created_at from updates if present
+        delete updates.id;
+        delete updates.created_at;
+
+        const { data, error } = await supabase
+            .from('match_templates')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json(data);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// DELETE /api/templates/:id - Delete a template
+app.delete('/api/templates/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const { error } = await supabase
+            .from('match_templates')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        res.json({ success: true, message: 'Template deleted successfully' });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }
